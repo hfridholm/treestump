@@ -19,4 +19,7 @@ https://www.chessprogramming.org/King_Pattern
 https://www.chessprogramming.org/Magic_Bitboards#How_it_works
 https://www.youtube.com/watch?v=gaXLyW-yMvg&list=PLmN0neTso3Jxh8ZIylk74JpwfiWNI76Cs&index=12
 
+https://www.chessprogramming.org/Magic_Bitboards#Plain
+https://www.youtube.com/watch?v=1lAM8ffBg0A&list=PLmN0neTso3Jxh8ZIylk74JpwfiWNI76Cs&index=16
+
 treestump

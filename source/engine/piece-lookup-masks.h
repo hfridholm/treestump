@@ -16,9 +16,4 @@ extern int BISHOP_RELEVANT_BITS[64];
 
 extern int ROOK_RELEVANT_BITS[64];
 
-
-extern void init_piece_lookup_masks();
-
-extern void init_bishop_rook_relevant_bits();
-
 #endif // PIECE_ATTACK_MASKS_H

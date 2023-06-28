@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef unsigned long long  U64;
 typedef unsigned long       U32;
@@ -61,8 +62,20 @@ typedef struct
   Side side;
   Square enpassant;
   Castle castle;
+  int clock;
+  int moves;
 } Position;
 
 extern void bitboard_print(U64 bitboard);
+
+extern void position_print(Position position);
+
+extern bool parse_fen_string(Position* position, const char fenString[]);
+
+extern void init_piece_lookup_attacks();
+
+extern void init_piece_lookup_masks();
+
+extern void init_bishop_rook_relevant_bits();
 
 #endif // ENGINE_H

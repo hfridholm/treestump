@@ -1,20 +1,5 @@
 #include "engine.h"
 
-#include "engine/piece-lookup-masks.h"
-#include "engine/piece-lookup-attacks.h"
-
-extern U64 BISHOP_LOOKUP_ATTACKS[64][512];
-
-extern U64 ROOK_LOOKUP_ATTACKS[64][4096];
-
-extern int rook_occupancy_index(Square square, U64 occupancy);
-
-extern U64 create_index_occupancy(int index, U64 attackMask, int bitAmount);
-
-extern int bitboard_bit_count(U64 bitboard);
-
-extern U64 mask_rook_attacks(Square square);
-
 int main(int argc, char* argv[])
 {
   printf("\n[ treestump ]\n\n");
@@ -24,6 +9,21 @@ int main(int argc, char* argv[])
   init_bishop_rook_relevant_bits();
 
   init_piece_lookup_attacks();
+
+
+  const char fenString[] = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10";
+
+
+  Position position;
+
+  if(!parse_fen_string(&position, fenString))
+  {
+    printf("parse_fen_string failed!\n");
+  }
+  else printf("parse_fen_string succesful!\n");
+  
+
+  position_print(position);
 
   return 0;
 }
