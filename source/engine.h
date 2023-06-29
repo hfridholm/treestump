@@ -9,9 +9,9 @@
 typedef unsigned long long  U64;
 typedef unsigned long       U32;
 
-#define BITBOARD_SQUARE_SET(BITBOARD, SQUARE) ((BITBOARD) |  (1ULL << (SQUARE)))
-#define BITBOARD_SQUARE_GET(BITBOARD, SQUARE) ((BITBOARD) &  (1ULL << (SQUARE)))
-#define BITBOARD_SQUARE_POP(BITBOARD, SQUARE) ((BITBOARD) & ~(1ULL << (SQUARE)))
+#define BOARD_SQUARE_SET(BOARD, SQUARE) ((BOARD) |  (1ULL << (SQUARE)))
+#define BOARD_SQUARE_GET(BOARD, SQUARE) ((BOARD) &  (1ULL << (SQUARE)))
+#define BOARD_SQUARE_POP(BOARD, SQUARE) ((BOARD) & ~(1ULL << (SQUARE)))
 
 #define BOARD_FILES   8
 #define BOARD_RANKS   8
@@ -39,6 +39,8 @@ typedef enum
 
 typedef unsigned char Castle;
 
+typedef int Move;
+
 typedef enum
 {
   PIECE_WHITE_PAWN, 
@@ -52,19 +54,57 @@ typedef enum
   PIECE_BLACK_BISHOP, 
   PIECE_BLACK_ROOK, 
   PIECE_BLACK_QUEEN, 
-  PIECE_BLACK_KING
+  PIECE_BLACK_KING,
+  PIECE_NONE
 } Piece;
 
 typedef struct
 {
-  U64 bitboards[12];
-  U64 occupancies[3];
-  Side side;
-  Square enpassant;
-  Castle castle;
-  int clock;
-  int moves;
+  U64     boards[12];
+  U64     covers[3];
+  Side    side;
+  Square  passant;
+  Castle  castle;
+  int     clock;
+  int     turns;
 } Position;
+
+extern const Move MOVE_MASK_SOURCE;
+extern const Move MOVE_MASK_TARGET;
+extern const Move MOVE_MASK_PIECE;
+extern const Move MOVE_MASK_PROMOTE;
+extern const Move MOVE_MASK_CAPTURE;
+extern const Move MOVE_MASK_DOUBLE;
+extern const Move MOVE_MASK_PASSANT;
+extern const Move MOVE_MASK_CASTLE;
+
+extern const Move MOVE_SHIFT_SOURCE;
+extern const Move MOVE_SHIFT_TARGET;
+extern const Move MOVE_SHIFT_PIECE;
+extern const Move MOVE_SHIFT_PROMOTE;
+
+#define MOVE_GET_SOURCE(MOVE)   ((MOVE & MOVE_MASK_SOURCE)  >> MOVE_SHIFT_SOURCE)
+#define MOVE_GET_TARGET(MOVE)   ((MOVE & MOVE_MASK_TARGET)  >> MOVE_SHIFT_TARGET)
+#define MOVE_GET_PIECE(MOVE)    ((MOVE & MOVE_MASK_PIECE)   >> MOVE_SHIFT_PIECE)
+#define MOVE_GET_PROMOTE(MOVE)  ((MOVE & MOVE_MASK_PROMOTE) >> MOVE_SHIFT_PROMOTE)
+
+#define MOVE_SET_SOURCE(SOURCE)   ((SOURCE << MOVE_SHIFT_SOURCE)  & MOVE_MASK_SOURCE)
+#define MOVE_SET_TARGET(TARGET)   ((TARGET << MOVE_SHIFT_TARGET)  & MOVE_MASK_TARGET)
+#define MOVE_SET_PIECE(PIECE)     ((PIECE << MOVE_SHIFT_PIECE)   & MOVE_MASK_PIECE)
+#define MOVE_SET_PROMOTE(PROMOTE) ((PROMOTE << MOVE_SHIFT_PROMOTE) & MOVE_MASK_PROMOTE)
+
+
+extern const Piece SYMBOL_PIECES[];
+
+extern const char PIECE_SYMBOLS[];
+
+extern const char* SQUARE_STRINGS[];
+
+extern const Castle CASTLE_BLACK_QUEEN;
+extern const Castle CASTLE_BLACK_KING;
+extern const Castle CASTLE_WHITE_QUEEN;
+extern const Castle CASTLE_WHITE_KING;
+
 
 extern void bitboard_print(U64 bitboard);
 
@@ -77,5 +117,9 @@ extern void init_piece_lookup_attacks();
 extern void init_piece_lookup_masks();
 
 extern void init_bishop_rook_relevant_bits();
+
+extern U64 piece_lookup_attacks(Position position, Square square);
+
+extern Piece boards_square_piece(U64 boards[12], Square square);
 
 #endif // ENGINE_H

@@ -118,3 +118,47 @@ U64 king_lookup_attacks(Square square)
 {
     return KING_LOOKUP_MASKS[square];
 }
+
+Piece boards_square_piece(U64 boards[12], Square square)
+{
+  for(Piece piece = PIECE_WHITE_PAWN; piece <= PIECE_BLACK_KING; piece++)
+  {
+    if(BOARD_SQUARE_GET(boards[piece], square)) return piece;
+  }
+  return PIECE_NONE;
+}
+
+U64 piece_lookup_attacks(Position position, Square square)
+{
+    Piece piece = boards_square_piece(position.boards, square);
+
+    if((piece == PIECE_WHITE_KING) || (piece == PIECE_BLACK_KING))
+    {
+        return king_lookup_attacks(square);
+    }
+    else if((piece == PIECE_WHITE_KNIGHT) || (piece == PIECE_BLACK_KNIGHT))
+    {
+        return knight_lookup_attacks(square);
+    }
+    else if((piece == PIECE_WHITE_BISHOP) || (piece == PIECE_BLACK_BISHOP))
+    {
+        return bishop_lookup_attacks(square, position.covers[SIDE_BOTH]);
+    }
+    else if((piece == PIECE_WHITE_ROOK) || (piece == PIECE_BLACK_ROOK))
+    {
+        return rook_lookup_attacks(square, position.covers[SIDE_BOTH]);
+    }
+    else if((piece == PIECE_WHITE_QUEEN) || (piece == PIECE_BLACK_QUEEN))
+    {
+        return queen_lookup_attacks(square, position.covers[SIDE_BOTH]);
+    }
+    else if(piece == PIECE_WHITE_PAWN)
+    {
+        return pawn_lookup_attacks(SIDE_WHITE, square);
+    }
+    else if(piece == PIECE_BLACK_PAWN)
+    {
+        return pawn_lookup_attacks(SIDE_BLACK, square);
+    }
+    else return 0ULL;
+}

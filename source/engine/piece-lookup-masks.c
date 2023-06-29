@@ -23,7 +23,7 @@ U64 mask_pawn_attacks(Side side, Square square)
 {
     U64 attacks = 0ULL;
 
-    U64 bitboard = BITBOARD_SQUARE_SET(0ULL, square);
+    U64 bitboard = BOARD_SQUARE_SET(0ULL, square);
 
     if(side == SIDE_WHITE)
     {
@@ -42,7 +42,7 @@ U64 mask_knight_attacks(Square square)
 {
     U64 attacks = 0ULL;
 
-    U64 bitboard = BITBOARD_SQUARE_SET(0ULL, square);
+    U64 bitboard = BOARD_SQUARE_SET(0ULL, square);
 
     if((bitboard >> 17) & NOT_H_FILE)  attacks |= (bitboard >> 17);
     if((bitboard >> 15) & NOT_A_FILE)  attacks |= (bitboard >> 15);
@@ -61,7 +61,7 @@ U64 mask_king_attacks(Square square)
 {
     U64 attacks = 0ULL;
 
-    U64 bitboard = BITBOARD_SQUARE_SET(0ULL, square);
+    U64 bitboard = BOARD_SQUARE_SET(0ULL, square);
     
     if (bitboard >> 8)                attacks |= (bitboard >> 8);
     if ((bitboard >> 9) & NOT_H_FILE) attacks |= (bitboard >> 9);
@@ -150,8 +150,8 @@ void init_bishop_rook_relevant_bits()
 {
     for (Square square = 0; square < BOARD_SQUARES; square++)
     {
-        BISHOP_RELEVANT_BITS[square] = bitboard_bit_count(BISHOP_LOOKUP_MASKS[square]);
+        BISHOP_RELEVANT_BITS[square] = board_bit_amount(BISHOP_LOOKUP_MASKS[square]);
 
-        ROOK_RELEVANT_BITS[square] = bitboard_bit_count(ROOK_LOOKUP_MASKS[square]);
+        ROOK_RELEVANT_BITS[square] = board_bit_amount(ROOK_LOOKUP_MASKS[square]);
     }
 }

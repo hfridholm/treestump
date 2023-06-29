@@ -1,6 +1,6 @@
 #include "../engine.h"
 
-int bitboard_bit_count(U64 bitboard)
+int board_bit_amount(U64 bitboard)
 {
   int count = 0;
 
@@ -14,9 +14,9 @@ int bitboard_bit_count(U64 bitboard)
   return count;
 }
 
-int bitboard_ls1b_index(U64 bitboard)
+int board_ls1b_index(U64 bitboard)
 {
   if(!bitboard) return -1;
 
-  return bitboard_bit_count((bitboard & -bitboard) - 1);
+  return board_bit_amount((bitboard & -bitboard) - 1);
 }

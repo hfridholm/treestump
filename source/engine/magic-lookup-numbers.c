@@ -15,7 +15,7 @@ U64 generate_occupancies_magic_number(U64 occupancies[4096], int relevantBits, U
     {
         U64 magicNumber = generate_magic_number();
 
-        if (bitboard_bit_count((attackMask * magicNumber) & 0xFF00000000000000) < 6) continue;
+        if (board_bit_amount((attackMask * magicNumber) & 0xFF00000000000000) < 6) continue;
         
         memset(usedAttacks, 0ULL, sizeof(usedAttacks));
         

@@ -32,21 +32,21 @@ bool parse_fen_clock(int* clock, const char string[])
   return true;
 }
 
-bool parse_fen_moves(int* moves, const char string[])
+bool parse_fen_turns(int* turns, const char string[])
 {
   int number = atoi(string);
 
   if((number == 0) && (*string != '0')) return false;
 
-  *moves = number;
+  *turns = number;
   return true;
 }
 
-bool parse_fen_enpassant(Square* enpassant, const char string[])
+bool parse_fen_passant(Square* passant, const char string[])
 {
   if(!strcmp(string, "-"))
   {
-    *enpassant = SQUARE_NONE;
+    *passant = SQUARE_NONE;
     return true;
   }
 
@@ -58,7 +58,7 @@ bool parse_fen_enpassant(Square* enpassant, const char string[])
 
   if(!(file >= 0 && file < BOARD_FILES) || !(rank >= 0 && rank < BOARD_RANKS)) return false;
 
-  *enpassant = (rank * BOARD_FILES) + file;
+  *passant = (rank * BOARD_FILES) + file;
 
   return true;
 }
@@ -96,7 +96,7 @@ bool parse_fen_castle(Castle* castle, const char string[])
   return true;
 }
 
-bool parse_fen_bitboards(U64 bitboards[12], const char string[])
+bool parse_fen_boards(U64 boards[12], const char string[])
 {
   char stringArray[8][128];
 
@@ -121,7 +121,7 @@ bool parse_fen_bitboards(U64 bitboards[12], const char string[])
       {
         Piece piece = SYMBOL_PIECES[symbol];
 
-        bitboards[piece] = BITBOARD_SQUARE_SET(bitboards[piece], square);
+        boards[piece] = BOARD_SQUARE_SET(boards[piece], square);
 
         file++;
       }
@@ -137,16 +137,16 @@ bool parse_fen_bitboards(U64 bitboards[12], const char string[])
 
 bool parse_fen_string(Position* position, const char fenString[])
 {
-  memset(position->bitboards, 0ULL, sizeof(position->bitboards));
+  memset(position->boards, 0ULL, sizeof(position->boards));
 
-  memset(position->occupancies, 0ULL, sizeof(position->occupancies));
+  memset(position->covers, 0ULL, sizeof(position->covers));
 
 
   position->side = SIDE_WHITE;
 
   position->castle = 0;
 
-  position->enpassant = SQUARE_NONE;
+  position->passant = SQUARE_NONE;
 
 
   int stringLength = strlen(fenString);
@@ -156,30 +156,30 @@ bool parse_fen_string(Position* position, const char fenString[])
   if(!split_string_delim(stringArray, fenString, stringLength, " ", 6)) return false;
 
 
-  if(!parse_fen_bitboards(position->bitboards, stringArray[0])) return false;
+  if(!parse_fen_boards(position->boards, stringArray[0])) return false;
 
   if(!parse_fen_side(&position->side, stringArray[1])) return false;
 
   if(!parse_fen_castle(&position->castle, stringArray[2])) return false;
 
-  if(!parse_fen_enpassant(&position->enpassant, stringArray[3])) return false;
+  if(!parse_fen_passant(&position->passant, stringArray[3])) return false;
 
   if(!parse_fen_clock(&position->clock, stringArray[4])) return false;
 
-  if(!parse_fen_moves(&position->moves, stringArray[5])) return false;
+  if(!parse_fen_turns(&position->turns, stringArray[5])) return false;
 
 
   for(Piece piece = PIECE_WHITE_PAWN; piece <= PIECE_WHITE_KING; piece++)
   {
-    position->occupancies[SIDE_WHITE] |= position->bitboards[piece];
+    position->covers[SIDE_WHITE] |= position->boards[piece];
   }
 
   for(Piece piece = PIECE_BLACK_PAWN; piece <= PIECE_BLACK_KING; piece++)
   {
-    position->occupancies[SIDE_BLACK] |= position->bitboards[piece];
+    position->covers[SIDE_BLACK] |= position->boards[piece];
   }
 
-  position->occupancies[SIDE_BOTH] = position->occupancies[SIDE_WHITE] | position->occupancies[SIDE_BLACK];
+  position->covers[SIDE_BOTH] = position->covers[SIDE_WHITE] | position->covers[SIDE_BLACK];
 
 
   return true;

@@ -8,9 +8,9 @@ U64 create_index_occupancy(int index, U64 attackMask, int bitAmount)
     
     for(int amount = 0; amount < bitAmount; amount++)
     {
-        int square = bitboard_ls1b_index(attackMask);
+        int square = board_ls1b_index(attackMask);
 
-        attackMask = BITBOARD_SQUARE_POP(attackMask, square);
+        attackMask = BOARD_SQUARE_POP(attackMask, square);
         
         if(index & (1 << amount)) occupancy |= (1ULL << square);
     }
