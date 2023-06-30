@@ -6,6 +6,9 @@ const Castle CASTLE_WHITE_QUEEN  = 0b0010;
 const Castle CASTLE_BLACK_KING   = 0b0100;
 const Castle CASTLE_BLACK_QUEEN  = 0b1000;
 
+const Castle CASTLE_WHITE = (CASTLE_WHITE_KING | CASTLE_WHITE_QUEEN);
+const Castle CASTLE_BLACK = (CASTLE_BLACK_KING | CASTLE_BLACK_QUEEN);
+
 const char* SQUARE_STRINGS[] = 
 {
   "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", 

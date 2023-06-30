@@ -105,6 +105,9 @@ extern const Castle CASTLE_BLACK_KING;
 extern const Castle CASTLE_WHITE_QUEEN;
 extern const Castle CASTLE_WHITE_KING;
 
+extern const Castle CASTLE_WHITE;
+extern const Castle CASTLE_BLACK;
+
 
 extern void bitboard_print(U64 bitboard);
 
@@ -121,5 +124,15 @@ extern void init_bishop_rook_relevant_bits();
 extern U64 piece_lookup_attacks(Position position, Square square);
 
 extern Piece boards_square_piece(U64 boards[12], Square square);
+
+extern bool move_fully_legal(Position position, Move move);
+
+extern bool move_pseudo_legal(Position position, Move move);
+
+extern void make_move(Position* position, Move move);
+
+extern void board_covers_print(Position position);
+
+extern U64 BOARD_LOOKUP_LINES[BOARD_SQUARES][BOARD_SQUARES];
 
 #endif // ENGINE_H
