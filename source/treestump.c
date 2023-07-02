@@ -53,108 +53,6 @@ void init_board_lookup_lines()
   }
 }
 
-bool board_square_attacked(Position position, Square square, Side side)
-{
-  if(queen_lookup_attacks(square, position.covers[SIDE_BOTH])   & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_QUEEN]  : position.boards[PIECE_BLACK_QUEEN]))  return true;
-
-  if(bishop_lookup_attacks(square, position.covers[SIDE_BOTH])  & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_BISHOP] : position.boards[PIECE_BLACK_BISHOP])) return true;
-
-  if(rook_lookup_attacks(square, position.covers[SIDE_BOTH])    & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_ROOK]   : position.boards[PIECE_BLACK_ROOK]))   return true;
-
-
-  if(side == SIDE_WHITE && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_WHITE_PAWN]))                                                             return true;
-
-  if(side == SIDE_BLACK && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_BLACK_PAWN]))                                                             return true;
-
-  if(knight_lookup_attacks(square)                              & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KNIGHT] : position.boards[PIECE_BLACK_KNIGHT])) return true;
-  
-
-  if(king_lookup_attacks(square)                                & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KING]   : position.boards[PIECE_BLACK_KING]))   return true;
-
-  return false;
-}
-
-bool ident_capture_move(U64 boards[12], Square targetSquare)
-{
-  Piece targetPiece = boards_square_piece(boards, targetSquare);
-
-  return (targetPiece != PIECE_NONE);
-}
-
-bool ident_double_move(Piece sourcePiece, Square sourceSquare, Square targetSquare)
-{
-  if(sourcePiece == PIECE_WHITE_PAWN)
-  {
-    if((sourceSquare - targetSquare) == (BOARD_FILES * 2)) return true;
-  }
-  else if(sourcePiece == PIECE_BLACK_PAWN)
-  {
-    if((targetSquare - sourceSquare) == (BOARD_FILES * 2)) return true;
-  }
-  return false;
-}
-
-bool ident_castle_move(Piece sourcePiece, Square sourceSquare, Square targetSquare)
-{
-  int squareDiff = (targetSquare - sourceSquare);
-
-  if((sourcePiece != PIECE_WHITE_KING) && (sourcePiece != PIECE_BLACK_KING)) return false;
-  
-  return ((squareDiff == +2) || (squareDiff == -2));
-}
-
-bool ident_passant_move(U64 boards[12], Piece sourcePiece, Square sourceSquare, Square targetSquare)
-{
-  Piece targetPiece = boards_square_piece(boards, targetSquare);
-
-  if(targetPiece != PIECE_NONE) return false;
-
-  int squareDiff = (targetSquare - sourceSquare);
-
-  if(sourcePiece == PIECE_WHITE_PAWN)
-  {
-    if((squareDiff == -9) || (squareDiff == -7)) return true;
-  }
-  else if(sourcePiece == PIECE_BLACK_PAWN)
-  {
-    if((squareDiff == +9) || (squareDiff == +7)) return true;
-  }
-  return false;
-}
-
-U64 complete_board_move(U64 boards[12], Move move)
-{
-  U64 completeMove = move;
-
-  Square sourceSquare = MOVE_GET_SOURCE(move);
-  Square targetSquare = MOVE_GET_TARGET(move);
-
-
-  Piece sourcePiece = boards_square_piece(boards, sourceSquare);
-
-  completeMove |= MOVE_SET_PIECE(sourcePiece);
-
-
-  if((sourcePiece == PIECE_WHITE_PAWN) && (targetSquare >= A8) && (targetSquare <= H8))
-  {
-    completeMove |= MOVE_SET_PROMOTE(PIECE_WHITE_QUEEN);
-  }
-  if((sourcePiece == PIECE_BLACK_PAWN) && (targetSquare >= A1) && (targetSquare <= H1))
-  {
-    completeMove |= MOVE_SET_PROMOTE(PIECE_BLACK_QUEEN);
-  }
-
-  if(ident_capture_move(boards, targetSquare)) completeMove |= MOVE_MASK_CAPTURE;
-  
-  if(ident_double_move(sourcePiece, sourceSquare, targetSquare)) completeMove |= MOVE_MASK_DOUBLE;
-
-  if(ident_castle_move(sourcePiece, sourceSquare, targetSquare)) completeMove |= MOVE_MASK_CASTLE;
-
-  if(ident_passant_move(boards, sourcePiece, sourceSquare, targetSquare)) completeMove |= MOVE_MASK_PASSANT;
-
-  return completeMove;
-}
-
 bool input_stdin_string(char* string, const char prompt[])
 {
   fflush(stdin);
@@ -218,6 +116,41 @@ bool parse_string_move(Move* move, const char stringMove[])
   return true;
 }
 
+int captureCount = 0;
+int passantCount = 0;
+int castleCount = 0;
+int promoteCount = 0;
+
+unsigned long position_depth_nodes(Position position, int depth)
+{
+  if(depth <= 0) return 1;
+
+  MoveArray moveArray;
+  memset(moveArray.moves, 0, sizeof(moveArray.moves));
+  moveArray.amount = 0;
+
+  create_moves(&moveArray, position);
+
+  int nodes = 0;
+
+  for(int index = 0; index < moveArray.amount; index++)
+  {
+    Position positionCopy = position;
+
+    make_move(&positionCopy, moveArray.moves[index]);
+
+
+    if(moveArray.moves[index] & MOVE_MASK_CAPTURE) captureCount++;
+    if(moveArray.moves[index] & MOVE_MASK_PASSANT) passantCount++;
+    if(moveArray.moves[index] & MOVE_MASK_CASTLE)  castleCount++;    
+    if(MOVE_GET_PROMOTE(moveArray.moves[index]) != PIECE_WHITE_PAWN) promoteCount++;
+
+
+    nodes += position_depth_nodes(positionCopy, depth - 1);
+  }
+  return nodes;
+}
+
 int main(int argc, char* argv[])
 {
   printf("\n[ treestump ]\n\n");
@@ -235,9 +168,53 @@ int main(int argc, char* argv[])
 
   Position position;
 
-  parse_fen_string(&position, "rnbqkbnr/ppppp3/5P2/5Pp1/8/8/PPPPP1PP/R3K2R w KQkq - 0 1");
+  // nodes=over captures=over passants=exact 
+  parse_fen(&position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+  // nodes=over captures=over passants=exact 
+  // parse_fen(&position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+
+  // nodes=over captures=over passants=over promotions=failed
+  // parse_fen(&position, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
+
+  // nodes=under captures=under passants=under promotions=failed
+  // parse_fen(&position, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+
+  int depth = 5;
+
+  unsigned long nodes = position_depth_nodes(position, depth);
+
+  printf("depth: %d\tnodes: %lu\tcapture: %d\tpassant: %d\tcastles: %d\tpromotes: %d\n", 
+    depth, nodes, captureCount, passantCount, castleCount, promoteCount);
+
+  /*
+  MoveArray moveArray;
+
+  memset(moveArray.moves, 0, sizeof(moveArray.moves));
+  moveArray.amount = 0;
+
+  create_moves(&moveArray, position);
 
 
+  position_print(position);
+
+
+  for(int index = 0; index < moveArray.amount; index++)
+  {
+    Square sourceSquare = MOVE_GET_SOURCE(moveArray.moves[index]);
+    Square targetSquare = MOVE_GET_TARGET(moveArray.moves[index]);
+
+    Piece promotePiece = MOVE_GET_PROMOTE(moveArray.moves[index]);
+
+    printf("#%d %s%s%c\n", index + 1,
+      SQUARE_STRINGS[sourceSquare], 
+      SQUARE_STRINGS[targetSquare], 
+      (promotePiece != PIECE_WHITE_PAWN) ? PIECE_SYMBOLS[promotePiece] : ' '
+    );
+  }
+  */
+
+  /*
   char inputMove[64];
 
   while(true)
@@ -275,10 +252,9 @@ int main(int argc, char* argv[])
 
     printf("\nLegal? %s\n", legal ? "yes" : "no");
 
-    // if(legal) make_move(&position, parseMove);
-
-    make_move(&position, parseMove);
+    if(legal) make_move(&position, parseMove);
   }
+  */
 
   return 0;
 }

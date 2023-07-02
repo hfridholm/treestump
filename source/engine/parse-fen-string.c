@@ -135,7 +135,7 @@ bool parse_fen_boards(U64 boards[12], const char string[])
   return true;
 }
 
-bool parse_fen_string(Position* position, const char fenString[])
+bool parse_fen(Position* position, const char fenString[])
 {
   memset(position->boards, 0ULL, sizeof(position->boards));
 

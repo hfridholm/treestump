@@ -2,6 +2,27 @@
 
 #include "piece-lookup-attacks.h"
 
+bool board_square_attacked(Position position, Square square, Side side)
+{
+  if(queen_lookup_attacks(square, position.covers[SIDE_BOTH])   & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_QUEEN]  : position.boards[PIECE_BLACK_QUEEN]))  return true;
+
+  if(bishop_lookup_attacks(square, position.covers[SIDE_BOTH])  & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_BISHOP] : position.boards[PIECE_BLACK_BISHOP])) return true;
+
+  if(rook_lookup_attacks(square, position.covers[SIDE_BOTH])    & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_ROOK]   : position.boards[PIECE_BLACK_ROOK]))   return true;
+
+
+  if(side == SIDE_WHITE && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_WHITE_PAWN]))                                                             return true;
+
+  if(side == SIDE_BLACK && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_BLACK_PAWN]))                                                             return true;
+
+  if(knight_lookup_attacks(square)                              & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KNIGHT] : position.boards[PIECE_BLACK_KNIGHT])) return true;
+  
+
+  if(king_lookup_attacks(square)                                & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KING]   : position.boards[PIECE_BLACK_KING]))   return true;
+
+  return false;
+}
+
 bool pawn_white_double_pseudo_legal(Position position, Move move)
 {
   Square sourceSquare = MOVE_GET_SOURCE(move);
@@ -172,6 +193,10 @@ bool castle_white_king_pseudo_legal(Position position)
 
   if(!(position.castle & CASTLE_WHITE_KING)) return false;
 
+  if(board_square_attacked(position, F1, SIDE_BLACK)) return false;
+
+  if(board_square_attacked(position, G1, SIDE_BLACK)) return false;
+
   return true;
 }
 
@@ -179,9 +204,13 @@ bool castle_white_queen_pseudo_legal(Position position)
 {
   if(!BOARD_SQUARE_GET(position.boards[PIECE_WHITE_ROOK], A1)) return false;
 
-  if(position.covers[SIDE_BOTH] & ((1ULL << C1) | (1ULL << D1))) return false;
+  if(position.covers[SIDE_BOTH] & ((1ULL << B1) | (1ULL << C1) | (1ULL << D1))) return false;
 
   if(!(position.castle & CASTLE_WHITE_QUEEN)) return false;
+
+  if(board_square_attacked(position, C1, SIDE_BLACK)) return false;
+
+  if(board_square_attacked(position, D1, SIDE_BLACK)) return false;
 
   return true;
 }
@@ -208,6 +237,10 @@ bool castle_black_king_pseudo_legal(Position position)
 
   if(!(position.castle & CASTLE_BLACK_KING)) return false;
 
+  if(board_square_attacked(position, G8, SIDE_WHITE)) return false;
+
+  if(board_square_attacked(position, F8, SIDE_WHITE)) return false;
+
   return true;
 }
 
@@ -215,9 +248,13 @@ bool castle_black_queen_pseudo_legal(Position position)
 {
   if(!BOARD_SQUARE_GET(position.boards[PIECE_BLACK_ROOK], A8)) return false;
 
-  if(position.covers[SIDE_BOTH] & ((1ULL << C8) | (1ULL << D8))) return false;
+  if(position.covers[SIDE_BOTH] & ((1ULL << B8) | (1ULL << C8) | (1ULL << D8))) return false;
 
   if(!(position.castle & CASTLE_BLACK_QUEEN)) return false;
+
+  if(board_square_attacked(position, C8, SIDE_WHITE)) return false;
+
+  if(board_square_attacked(position, D8, SIDE_WHITE)) return false;
 
   return true;
 }
@@ -297,6 +334,42 @@ bool move_pseudo_legal(Position position, Move move)
 bool move_fully_legal(Position position, Move move)
 {
   if(!move_pseudo_legal(position, move)) return false;
+
+  Position movedPosition = position;
+
+  make_move(&movedPosition, move);
+
+
+  Piece kingPiece = (movedPosition.side == SIDE_WHITE) ? PIECE_BLACK_KING : PIECE_WHITE_KING;
+
+  Square kingSquare = board_ls1b_index(movedPosition.boards[kingPiece]);
+
+  // The king should always exists, but if it don't return false
+  if(kingSquare == -1) return false;
+
+  if(board_square_attacked(movedPosition, kingSquare, movedPosition.side)) return false;
+
+  return true;
+}
+
+bool make_legal_move(Position* position, Move move)
+{
+  if(!move_pseudo_legal(*position, move)) return false;
+
+  Position movedPosition = *position;
+
+  make_move(&movedPosition, move);
+
+
+  Piece kingPiece = (movedPosition.side == SIDE_WHITE) ? PIECE_BLACK_KING : PIECE_WHITE_KING;
+
+  Square kingSquare = board_ls1b_index(movedPosition.boards[kingPiece]);
+
+  if(kingSquare == -1);
+
+  if(board_square_attacked(movedPosition, kingSquare, movedPosition.side)) return false;
+
+  *position = movedPosition;
 
   return true;
 }

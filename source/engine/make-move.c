@@ -349,6 +349,7 @@ void make_pawn_move(Position* position, Move move)
 
 void make_move(Position* position, Move move)
 {
+
   // This is the default for every move
   position->clock++;
 

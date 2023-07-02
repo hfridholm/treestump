@@ -69,6 +69,12 @@ typedef struct
   int     turns;
 } Position;
 
+typedef struct
+{
+  Move moves[256];
+  int amount;
+} MoveArray;
+
 extern const Move MOVE_MASK_SOURCE;
 extern const Move MOVE_MASK_TARGET;
 extern const Move MOVE_MASK_PIECE;
@@ -113,7 +119,7 @@ extern void bitboard_print(U64 bitboard);
 
 extern void position_print(Position position);
 
-extern bool parse_fen_string(Position* position, const char fenString[]);
+extern bool parse_fen(Position* position, const char fenString[]);
 
 extern void init_piece_lookup_attacks();
 
@@ -134,5 +140,13 @@ extern void make_move(Position* position, Move move);
 extern void board_covers_print(Position position);
 
 extern U64 BOARD_LOOKUP_LINES[BOARD_SQUARES][BOARD_SQUARES];
+
+extern bool make_legal_move(Position* position, Move move);
+
+extern int board_ls1b_index(U64 bitboard);
+
+extern void create_moves(MoveArray* moveArray, Position position);
+
+// extern void create_move(U64 boards[12], Square sourceSquare, Square targetSquare);
 
 #endif // ENGINE_H
