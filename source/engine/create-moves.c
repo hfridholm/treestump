@@ -6,7 +6,7 @@ void create_white_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
 {
   for(Square targetSquare = (sourceSquare - 9); targetSquare <= (sourceSquare - 7); targetSquare++)
   {
-    Move move = create_promote_move(position.boards, sourceSquare, sourceSquare - (BOARD_FILES * 2), PIECE_WHITE_PAWN, PIECE_WHITE_QUEEN);
+    Move move = create_promote_move(position.boards, sourceSquare, targetSquare, PIECE_WHITE_PAWN, PIECE_WHITE_QUEEN);
 
     if(!move_fully_legal(position, move)) continue;
 
@@ -21,24 +21,27 @@ void create_white_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
 
 void create_white_pawn_moves(MoveArray* moveArray, Position position, Square sourceSquare)
 {
-  for(Square targetSquare = (sourceSquare - 9); targetSquare <= (sourceSquare - 7); targetSquare++)
-  {
-    Move move = create_normal_move(position.boards, sourceSquare, targetSquare, PIECE_WHITE_PAWN);
-
-    if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
-
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
-  }
-
-  if(sourceSquare >= A2 && sourceSquare <= H2)
-  {
-    Move move = create_double_move(sourceSquare, sourceSquare - (BOARD_FILES * 2), PIECE_WHITE_PAWN);
-
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
-  }
-  else if(sourceSquare >= A7 && sourceSquare <= H7)
+  if(sourceSquare >= A7 && sourceSquare <= H7)
   {
     create_white_pawn_promote_moves(moveArray, position, sourceSquare);
+  }
+  else // Rewrite this code
+  {
+    for(Square targetSquare = (sourceSquare - 9); targetSquare <= (sourceSquare - 7); targetSquare++)
+    {
+      Move move = create_normal_move(position.boards, sourceSquare, targetSquare, PIECE_WHITE_PAWN);
+
+      if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
+
+      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    }
+
+    if(sourceSquare >= A2 && sourceSquare <= H2)
+    {
+      Move move = create_double_move(sourceSquare, sourceSquare - (BOARD_FILES * 2), PIECE_WHITE_PAWN);
+
+      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    }
   }
 }
 
@@ -46,7 +49,7 @@ void create_black_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
 {
   for(Square targetSquare = (sourceSquare + 7); targetSquare <= (sourceSquare + 9); targetSquare++)
   {
-    Move move = create_promote_move(position.boards, sourceSquare, sourceSquare + (BOARD_FILES * 2), PIECE_BLACK_PAWN, PIECE_BLACK_QUEEN);
+    Move move = create_promote_move(position.boards, sourceSquare, targetSquare, PIECE_BLACK_PAWN, PIECE_BLACK_QUEEN);
 
     if(!move_fully_legal(position, move)) continue;
 
@@ -61,24 +64,27 @@ void create_black_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
 
 void create_black_pawn_moves(MoveArray* moveArray, Position position, Square sourceSquare)
 {
-  for(Square targetSquare = (sourceSquare + 7); targetSquare <= (sourceSquare + 9); targetSquare++)
-  {
-    Move move = create_normal_move(position.boards, sourceSquare, targetSquare, PIECE_BLACK_PAWN);
-
-    if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
-
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
-  }
-
-  if(sourceSquare >= A7 && sourceSquare <= H7)
-  {
-    Move move = create_double_move(sourceSquare, sourceSquare + (BOARD_FILES * 2), PIECE_BLACK_PAWN);
-
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
-  }
-  else if(sourceSquare >= A2 && sourceSquare <= H2)
+  if(sourceSquare >= A2 && sourceSquare <= H2)
   {
     create_black_pawn_promote_moves(moveArray, position, sourceSquare);
+  }
+  else // Rewrite this code
+  {
+    for(Square targetSquare = (sourceSquare + 7); targetSquare <= (sourceSquare + 9); targetSquare++)
+    {
+      Move move = create_normal_move(position.boards, sourceSquare, targetSquare, PIECE_BLACK_PAWN);
+
+      if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
+
+      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    }
+
+    if(sourceSquare >= A7 && sourceSquare <= H7)
+    {
+      Move move = create_double_move(sourceSquare, sourceSquare + (BOARD_FILES * 2), PIECE_BLACK_PAWN);
+
+      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    }
   }
 }
 

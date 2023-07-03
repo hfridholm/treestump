@@ -149,4 +149,8 @@ extern void create_moves(MoveArray* moveArray, Position position);
 
 // extern void create_move(U64 boards[12], Square sourceSquare, Square targetSquare);
 
+extern bool board_square_attacked(Position position, Square square, Side side);
+
+extern Move complete_move(U64 boards[12], Move move);
+
 #endif // ENGINE_H

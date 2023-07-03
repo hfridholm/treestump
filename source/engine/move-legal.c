@@ -13,7 +13,7 @@ bool board_square_attacked(Position position, Square square, Side side)
 
   if(side == SIDE_WHITE && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_WHITE_PAWN]))                                                             return true;
 
-  if(side == SIDE_BLACK && (pawn_lookup_attacks(SIDE_BLACK, square) & position.boards[PIECE_BLACK_PAWN]))                                                             return true;
+  if(side == SIDE_BLACK && (pawn_lookup_attacks(SIDE_WHITE, square) & position.boards[PIECE_BLACK_PAWN]))                                                             return true;
 
   if(knight_lookup_attacks(square)                              & ((side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KNIGHT] : position.boards[PIECE_BLACK_KNIGHT])) return true;
   
@@ -197,6 +197,8 @@ bool castle_white_king_pseudo_legal(Position position)
 
   if(board_square_attacked(position, G1, SIDE_BLACK)) return false;
 
+  if(board_square_attacked(position, E1, SIDE_BLACK)) return false;
+
   return true;
 }
 
@@ -211,6 +213,8 @@ bool castle_white_queen_pseudo_legal(Position position)
   if(board_square_attacked(position, C1, SIDE_BLACK)) return false;
 
   if(board_square_attacked(position, D1, SIDE_BLACK)) return false;
+
+  if(board_square_attacked(position, E1, SIDE_BLACK)) return false;
 
   return true;
 }
@@ -231,7 +235,7 @@ bool castle_white_pseudo_legal(Position position, Move move)
 
 bool castle_black_king_pseudo_legal(Position position)
 {
-  if(!BOARD_SQUARE_GET(position.boards[PIECE_BLACK_ROOK], H1)) return false;
+  if(!BOARD_SQUARE_GET(position.boards[PIECE_BLACK_ROOK], H8)) return false;
 
   if(position.covers[SIDE_BOTH] & ((1ULL << G8) | (1ULL << F8))) return false;
 
@@ -240,6 +244,8 @@ bool castle_black_king_pseudo_legal(Position position)
   if(board_square_attacked(position, G8, SIDE_WHITE)) return false;
 
   if(board_square_attacked(position, F8, SIDE_WHITE)) return false;
+
+  if(board_square_attacked(position, E8, SIDE_WHITE)) return false;
 
   return true;
 }
@@ -255,6 +261,8 @@ bool castle_black_queen_pseudo_legal(Position position)
   if(board_square_attacked(position, C8, SIDE_WHITE)) return false;
 
   if(board_square_attacked(position, D8, SIDE_WHITE)) return false;
+
+  if(board_square_attacked(position, E8, SIDE_WHITE)) return false;
 
   return true;
 }
@@ -320,6 +328,9 @@ bool move_pseudo_legal(Position position, Move move)
 {
   Piece sourcePiece = MOVE_GET_PIECE(move);
 
+  if((sourcePiece >= PIECE_WHITE_PAWN && sourcePiece <= PIECE_WHITE_KING) && position.side != SIDE_WHITE) return false;
+  if((sourcePiece >= PIECE_BLACK_PAWN && sourcePiece <= PIECE_BLACK_KING) && position.side != SIDE_BLACK) return false;
+
   if((sourcePiece == PIECE_WHITE_PAWN) || (sourcePiece == PIECE_BLACK_PAWN))
   {
     return pawn_move_pseudo_legal(position, move);
@@ -345,7 +356,11 @@ bool move_fully_legal(Position position, Move move)
   Square kingSquare = board_ls1b_index(movedPosition.boards[kingPiece]);
 
   // The king should always exists, but if it don't return false
-  if(kingSquare == -1) return false;
+  if(kingSquare == -1)
+  {
+    printf("kingSquare == -1\n");
+    return false;
+  }
 
   if(board_square_attacked(movedPosition, kingSquare, movedPosition.side)) return false;
 

@@ -62,70 +62,56 @@ bool input_stdin_string(char* string, const char prompt[])
   return sscanf(buffer, "%[^\n]%*c", string);
 }
 
-bool parse_string_square(Square* square, const char string[])
+Square parse_square(const char squareString[])
 {
-  if(strlen(string) != 2) return false;
+  int file = squareString[0] - 'a';
+  int rank = BOARD_RANKS - (squareString[1] - '0');
 
-  int file = string[0] - 'a';
-  int rank = BOARD_RANKS - (string[1] - '0');
+  if(!(file >= 0 && file < BOARD_FILES) || !(rank >= 0 && rank < BOARD_RANKS)) return SQUARE_NONE;
 
-  if(!(file >= 0 && file < BOARD_FILES) || !(rank >= 0 && rank < BOARD_RANKS)) return false;
-
-  *square = (rank * BOARD_FILES) + file;
-
-  return true;
+  return (rank * BOARD_FILES) + file;
 }
 
-bool parse_string_move(Move* move, const char stringMove[])
+Move parse_move(const char moveString[])
 {
   Move parseMove = 0;
 
-  int stringLength = strlen(stringMove);
+  Square sourceSquare = parse_square(moveString += 0);
+  if(sourceSquare == SQUARE_NONE) return 0;
 
-  if(stringLength != 4 && stringLength != 5) return false;
-
-  char sourceString[3];
-  memset(sourceString, '\0', sizeof(sourceString));
-  strncpy(sourceString, (stringMove + 0), 2);
-
-  Square sourceSquare;
-  if(!parse_string_square(&sourceSquare, sourceString)) return false;
-
-  char targetString[3];
-  memset(targetString, '\0', sizeof(targetString));
-  strncpy(targetString, (stringMove + 2), 2);
-
-  Square targetSquare;
-  if(!parse_string_square(&targetSquare, targetString)) return false;
-
-  /*
-  if(stringLength == 5)
-  {
-    switch(stringMove[4])
-    {
-    case 'q': sourceString = SET_MOVE_PROMOTE(());
-    }
-  }
-  */
+  Square targetSquare = parse_square(moveString += 2);
+  if(targetSquare == SQUARE_NONE) return 0;
 
   parseMove |= MOVE_SET_SOURCE(sourceSquare);
   parseMove |= MOVE_SET_TARGET(targetSquare);
 
-  *move = parseMove;
+  Piece promotePiece = SYMBOL_PIECES[(unsigned char) *moveString];
 
-  return true;
+  if(promotePiece != PIECE_WHITE_PAWN) parseMove |= MOVE_SET_PROMOTE(promotePiece);
+
+  return parseMove;
 }
 
-int captureCount = 0;
-int passantCount = 0;
-int castleCount = 0;
-int promoteCount = 0;
+char* move_string(char* moveString, Move move)
+{
+  const char* sourceString = SQUARE_STRINGS[MOVE_GET_SOURCE(move)];
+  const char* targetString = SQUARE_STRINGS[MOVE_GET_TARGET(move)];
 
-unsigned long position_depth_nodes(Position position, int depth)
+  Piece promotePiece = MOVE_GET_PROMOTE(move);
+
+  if(promotePiece == PIECE_WHITE_PAWN) sprintf(moveString, "%s%s", sourceString, targetString);
+
+  else sprintf(moveString, "%s%s%c", sourceString, targetString, PIECE_SYMBOLS[promotePiece]);
+
+  return moveString;
+}
+
+U64 perft_driver(Position position, int depth)
 {
   if(depth <= 0) return 1;
 
   MoveArray moveArray;
+
   memset(moveArray.moves, 0, sizeof(moveArray.moves));
   moveArray.amount = 0;
 
@@ -139,16 +125,82 @@ unsigned long position_depth_nodes(Position position, int depth)
 
     make_move(&positionCopy, moveArray.moves[index]);
 
-
-    if(moveArray.moves[index] & MOVE_MASK_CAPTURE) captureCount++;
-    if(moveArray.moves[index] & MOVE_MASK_PASSANT) passantCount++;
-    if(moveArray.moves[index] & MOVE_MASK_CASTLE)  castleCount++;    
-    if(MOVE_GET_PROMOTE(moveArray.moves[index]) != PIECE_WHITE_PAWN) promoteCount++;
-
-
-    nodes += position_depth_nodes(positionCopy, depth - 1);
+    nodes += perft_driver(positionCopy, depth - 1);
   }
   return nodes;
+}
+
+void perft_test(Position position, int depth)
+{
+  MoveArray moveArray;
+
+  memset(moveArray.moves, 0, sizeof(moveArray.moves));
+  moveArray.amount = 0;
+
+  create_moves(&moveArray, position);
+
+  char moveString[8];
+
+  U64 totalNodes = 0;
+
+  for(int index = 0; index < moveArray.amount; index++)
+  {
+    Position positionCopy = position;
+
+    make_move(&positionCopy, moveArray.moves[index]);
+
+    U64 moveNodes = perft_driver(positionCopy, depth - 1);
+
+    totalNodes += moveNodes;
+
+    memset(moveString, 0, sizeof(moveString));
+
+    move_string(moveString, moveArray.moves[index]);
+
+    printf("%s: %llu\n", moveString, moveNodes);
+  }
+  printf("\nNodes searched: %llu\n", totalNodes);
+}
+
+const char FEN_START[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+Position parse_position(const char positionString[])
+{
+  Position position;
+
+  if(!strncmp(positionString, "startpos", 8))
+  {
+    parse_fen(&position, FEN_START);
+  }
+  else if(!strncmp(positionString, "fen", 3))
+  {
+    printf("fen: (%s)\n", positionString + 4);
+    parse_fen(&position, positionString + 4);
+  }
+  else parse_fen(&position, FEN_START);
+
+  char* movesString = strstr(positionString, "moves");
+
+  if(movesString != NULL)
+  {
+    movesString += 6;
+
+    while(*movesString)
+    {
+      Move parsedMove = parse_move(movesString);
+
+      if(parsedMove == 0) break;
+
+      Move move = complete_move(position.boards, parsedMove);
+
+      make_move(&position, move);
+
+      while(*movesString && *movesString != ' ') movesString++;
+
+      movesString++;
+    }
+  }
+  return position;
 }
 
 int main(int argc, char* argv[])
@@ -165,27 +217,65 @@ int main(int argc, char* argv[])
   init_board_lookup_lines();
 
 
-
   Position position;
-
-  // nodes=over captures=over passants=exact 
   parse_fen(&position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-  // nodes=over captures=over passants=exact 
+  char inputString[256];
+
+  while(strcmp(inputString, "quit"))
+  {
+    memset(inputString, 0, sizeof(inputString));
+
+    input_stdin_string(inputString, "");
+
+    if(!strncmp(inputString, "position", 8))
+    {
+      char* positionString = inputString + 9;
+
+      position = parse_position(positionString);
+    }
+    else if(!strncmp(inputString, "go", 2))
+    {
+      char* goString = inputString + 3;
+
+      if(!strncmp(goString, "perft", 5))
+      {
+        char* perftString = goString + 6;
+
+        int depth = atoi(perftString);
+
+        perft_test(position, depth);
+      }
+    }
+    else if(!strncmp(inputString, "d", 1))
+    {
+      position_print(position);
+    }
+  }
+
+  // parse_fen(&position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
   // parse_fen(&position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 
-  // nodes=over captures=over passants=over promotions=failed
   // parse_fen(&position, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
 
-  // nodes=under captures=under passants=under promotions=failed
   // parse_fen(&position, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 
-  int depth = 5;
+  /*
+  for(int rank = 0; rank < 8; rank++)
+  {
+    for(int file = 0; file < 8; file++)
+    {
+      Square square = (rank * 8) + file;
 
-  unsigned long nodes = position_depth_nodes(position, depth);
+      if(file == 0) printf("%d ", 8 - rank);
 
-  printf("depth: %d\tnodes: %lu\tcapture: %d\tpassant: %d\tcastles: %d\tpromotes: %d\n", 
-    depth, nodes, captureCount, passantCount, castleCount, promoteCount);
+      if(board_square_attacked(position, square, !position.side)) printf("X ");
+      else printf(". ");
+    }
+    printf("\n");
+  }
+  */
 
   /*
   MoveArray moveArray;

@@ -1,3 +1,4 @@
 *
 !.gitignore
 !makefile
+!perft-comp.py

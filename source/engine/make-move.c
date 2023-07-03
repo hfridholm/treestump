@@ -108,6 +108,7 @@ void make_normal_move(Position* position, Move move)
   Square sourceSquare = MOVE_GET_SOURCE(move);
   Piece sourcePiece = MOVE_GET_PIECE(move);
 
+  // Fix: Clear the castling rights if the rook gets captures as well!
   if(sourcePiece == PIECE_WHITE_ROOK || sourcePiece == PIECE_BLACK_ROOK)
   {
     if(sourceSquare == A1) position->castle &= ~CASTLE_WHITE_QUEEN;

@@ -126,3 +126,11 @@ Move create_move(U64 boards[12], Square sourceSquare, Square targetSquare)
 
   return move;
 }
+
+Move complete_move(U64 boards[12], Move move)
+{
+  Square sourceSquare = MOVE_GET_SOURCE(move);
+  Square targetSquare = MOVE_GET_TARGET(move);
+
+  return create_move(boards, sourceSquare, targetSquare);
+}

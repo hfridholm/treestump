@@ -1,6 +1,6 @@
 CLEAN_TARGET := clean
 
-COMPILE_FLAGS := -Wall -Werror -g -Og -std=c99 # -O3
+COMPILE_FLAGS := -Wall -Werror -g -Og -std=c99 -oFast
 COMPILE_PRGRM := gcc
 COMPILE_LINKS := -lm
 
