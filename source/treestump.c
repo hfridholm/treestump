@@ -53,7 +53,7 @@ void init_board_lookup_lines()
   }
 }
 
-bool input_stdin_string(char* string, const char prompt[])
+bool stdin_string(char* string, const char prompt[])
 {
   fflush(stdin);
   printf("%s", prompt);
@@ -174,10 +174,10 @@ Position parse_position(const char positionString[])
   }
   else if(!strncmp(positionString, "fen", 3))
   {
-    printf("fen: (%s)\n", positionString + 4);
     parse_fen(&position, positionString + 4);
   }
   else parse_fen(&position, FEN_START);
+
 
   char* movesString = strstr(positionString, "moves");
 
@@ -203,81 +203,32 @@ Position parse_position(const char positionString[])
   return position;
 }
 
-int main(int argc, char* argv[])
+void init_all()
 {
-  printf("\n[ treestump ]\n\n");
-
   init_piece_lookup_masks();
 
   init_bishop_rook_relevant_bits();
 
   init_piece_lookup_attacks();
 
-
   init_board_lookup_lines();
+}
 
+U64 searchedNodes = 0;
 
-  Position position;
-  parse_fen(&position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-  char inputString[256];
-
-  while(strcmp(inputString, "quit"))
+int negamax(Position position, int depth, int alpha, int beta)
+{
+  if(depth <= 0)
   {
-    memset(inputString, 0, sizeof(inputString));
+    searchedNodes++;
 
-    input_stdin_string(inputString, "");
+    int score = position_score(position);
 
-    if(!strncmp(inputString, "position", 8))
-    {
-      char* positionString = inputString + 9;
-
-      position = parse_position(positionString);
-    }
-    else if(!strncmp(inputString, "go", 2))
-    {
-      char* goString = inputString + 3;
-
-      if(!strncmp(goString, "perft", 5))
-      {
-        char* perftString = goString + 6;
-
-        int depth = atoi(perftString);
-
-        perft_test(position, depth);
-      }
-    }
-    else if(!strncmp(inputString, "d", 1))
-    {
-      position_print(position);
-    }
+    return (position.side == SIDE_WHITE) ? score : -score;
   }
 
-  // parse_fen(&position, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  int bestScore = -500000;
 
-  // parse_fen(&position, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-
-  // parse_fen(&position, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
-
-  // parse_fen(&position, "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
-
-  /*
-  for(int rank = 0; rank < 8; rank++)
-  {
-    for(int file = 0; file < 8; file++)
-    {
-      Square square = (rank * 8) + file;
-
-      if(file == 0) printf("%d ", 8 - rank);
-
-      if(board_square_attacked(position, square, !position.side)) printf("X ");
-      else printf(". ");
-    }
-    printf("\n");
-  }
-  */
-
-  /*
   MoveArray moveArray;
 
   memset(moveArray.moves, 0, sizeof(moveArray.moves));
@@ -286,65 +237,201 @@ int main(int argc, char* argv[])
   create_moves(&moveArray, position);
 
 
-  position_print(position);
+  if(moveArray.amount <= 0)
+  {
+    U64 kingBoard = (position.side == SIDE_WHITE) ? position.boards[PIECE_WHITE_KING] : position.boards[PIECE_BLACK_KING];
 
+    Square kingSquare = board_ls1b_index(kingBoard);
+
+    if(kingSquare == -1 || board_square_attacked(position, kingSquare, !position.side))
+    {
+      return -49000 + depth;
+    }
+    else return 0; // Draw;
+  }
+
+
+  guess_order_moves(&moveArray, position);
 
   for(int index = 0; index < moveArray.amount; index++)
   {
-    Square sourceSquare = MOVE_GET_SOURCE(moveArray.moves[index]);
-    Square targetSquare = MOVE_GET_TARGET(moveArray.moves[index]);
+    Position positionCopy = position;
 
-    Piece promotePiece = MOVE_GET_PROMOTE(moveArray.moves[index]);
+    make_move(&positionCopy, moveArray.moves[index]);
 
-    printf("#%d %s%s%c\n", index + 1,
-      SQUARE_STRINGS[sourceSquare], 
-      SQUARE_STRINGS[targetSquare], 
-      (promotePiece != PIECE_WHITE_PAWN) ? PIECE_SYMBOLS[promotePiece] : ' '
-    );
+    int currentScore = -negamax(positionCopy, (depth - 1), -beta, -alpha);
+
+    if(currentScore > bestScore) bestScore = currentScore;
+
+    if(bestScore > alpha) alpha = bestScore;
+
+    if(alpha >= beta) break;
   }
-  */
+  return bestScore;
+}
 
-  /*
-  char inputMove[64];
+Move best_move(Position position, int depth)
+{
+  MoveArray moveArray;
 
-  while(true)
+  memset(moveArray.moves, 0, sizeof(moveArray.moves));
+  moveArray.amount = 0;
+
+  create_moves(&moveArray, position);
+
+  if(moveArray.amount <= 0) return 0;
+
+  int bestScore = -500000;
+  Move bestMove = moveArray.moves[0];
+
+  for(int index = 0; index < moveArray.amount; index++)
   {
-    board_covers_print(position);
+    Position positionCopy = position;
 
+    Move currentMove = moveArray.moves[index];
 
-    if(!input_stdin_string(inputMove, "Move: ")) break;
+    make_move(&positionCopy, currentMove);
 
-    Move parseMove = 0;
+    int currentScore = -negamax(positionCopy, (depth - 1), -50000, +50000);
 
-    if(!parse_string_move(&parseMove, inputMove))
+    /*
+    char moveString[8];
+    move_string(moveString, currentMove);
+    printf("%s: %d\n", moveString, currentScore);
+    */
+
+    if(currentScore > bestScore) 
     {
-      printf("parse failed\n");
+      bestScore = currentScore;
+      bestMove = currentMove;
     }
-
-    parseMove = complete_board_move(position.boards, parseMove);
-
-    
-    printf("Move: (%s)\n", inputMove);
-
-    printf("Source  : %s\n", SQUARE_STRINGS[MOVE_GET_SOURCE(parseMove)]);
-    printf("Target  : %s\n", SQUARE_STRINGS[MOVE_GET_TARGET(parseMove)]);
-    printf("Piece   : %c\n", PIECE_SYMBOLS[MOVE_GET_PIECE(parseMove)]);
-    printf("Promote : %c\n", (parseMove & MOVE_MASK_PROMOTE) ? PIECE_SYMBOLS[MOVE_GET_PROMOTE(parseMove)] : '-');
-
-    printf("Capture : %s\n", (parseMove & MOVE_MASK_CAPTURE) ? "yes" : "no");
-    printf("Double  : %s\n", (parseMove & MOVE_MASK_DOUBLE) ? "yes" : "no");
-    printf("Passant : %s\n", (parseMove & MOVE_MASK_PASSANT) ? "yes" : "no");
-    printf("Castle  : %s\n", (parseMove & MOVE_MASK_CASTLE) ? "yes" : "no");
-
-
-    
-    bool legal = move_fully_legal(position, parseMove);
-
-    printf("\nLegal? %s\n", legal ? "yes" : "no");
-
-    if(legal) make_move(&position, parseMove);
   }
-  */
+  return bestMove;
+}
+
+void parse_go(Position* position, const char goString[])
+{
+  if(!strncmp(goString, "perft", 5))
+  {
+    int depth = atoi(goString + 6);
+
+    perft_test(*position, depth);
+  }
+  else if(!strncmp(goString, "searchmoves", 11))
+  {
+
+  }
+  else if(!strncmp(goString, "ponder", 5))
+  {
+
+  }
+  else if(!strncmp(goString, "wtime", 5))
+  {
+
+  }
+  else if(!strncmp(goString, "btime", 5))
+  {
+
+  }
+  else if(!strncmp(goString, "winc", 4))
+  {
+
+  }
+  else if(!strncmp(goString, "binc", 5))
+  {
+
+  }
+  else if(!strncmp(goString, "depth", 5))
+  {
+    int depth = atoi(goString + 5);
+
+    searchedNodes = 0;
+
+    Move bestMove = best_move(*position, depth);
+
+    char moveString[8];
+    move_string(moveString, bestMove);
+
+    printf("bestmove: %s\n", moveString);
+
+    printf("searched nodes: %llu\n", searchedNodes);
+  }
+  else if(!strncmp(goString, "nodes", 5))
+  {
+
+  }
+  else if(!strncmp(goString, "mate", 4))
+  {
+
+  }
+  else if(!strncmp(goString, "movetime", 8))
+  {
+
+  }
+  else if(!strncmp(goString, "infinite", 8))
+  {
+
+  }
+}
+
+int main(int argc, char* argv[])
+{
+  init_all();
+
+  char inputString[256];
+
+  /*stdin_string(inputString, "");
+
+  if(!strcmp(inputString, "uci"))
+  {
+    printf("id name TreeStump\n");
+    printf("id author Hampus Fridholm\n");
+    printf("uciok\n");
+  }
+  else return 1;*/
+
+  Position position;
+  parse_fen(&position, FEN_START);
+
+  while(strcmp(inputString, "quit"))
+  {
+    memset(inputString, 0, sizeof(inputString));
+
+    stdin_string(inputString, "");
+
+    if(!strncmp(inputString, "position", 8))
+    {
+      position = parse_position(inputString + 9);
+    }
+    else if(!strncmp(inputString, "go", 2))
+    {
+      parse_go(&position, inputString + 3);
+    }
+    else if(!strcmp(inputString, "d"))
+    {
+      position_print(position);
+    }
+    else if(!strncmp(inputString, "isready", 7))
+    {
+      printf("readyok\n");
+    }
+    else if(!strncmp(inputString, "debug", 5))
+    {
+
+    }
+    else if(!strcmp(inputString, "ucinewgame"))
+    {
+
+    }
+    else if(!strcmp(inputString, "stop"))
+    {
+      printf("bestmove a1a1\n");
+    }
+    else if(!strcmp(inputString, "ponderhit"))
+    {
+
+    }
+  }
 
   return 0;
 }

@@ -30,6 +30,8 @@ typedef enum
   SQUARE_NONE
 } Square;
 
+extern const Square MIRROR_SQUARES[BOARD_SQUARES];
+
 typedef enum 
 {
   SIDE_WHITE, 
@@ -102,9 +104,9 @@ extern const Move MOVE_SHIFT_PROMOTE;
 
 extern const Piece SYMBOL_PIECES[];
 
-extern const char PIECE_SYMBOLS[];
+extern const char PIECE_SYMBOLS[12];
 
-extern const char* SQUARE_STRINGS[];
+extern const char* SQUARE_STRINGS[BOARD_SQUARES];
 
 extern const Castle CASTLE_BLACK_QUEEN;
 extern const Castle CASTLE_BLACK_KING;
@@ -152,5 +154,11 @@ extern void create_moves(MoveArray* moveArray, Position position);
 extern bool board_square_attacked(Position position, Square square, Side side);
 
 extern Move complete_move(U64 boards[12], Move move);
+
+extern int position_score(Position position);
+
+extern void guess_order_moves(MoveArray* moveArray, Position position);
+
+extern const int PIECE_SCORES[12];
 
 #endif // ENGINE_H
