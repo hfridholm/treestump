@@ -1,6 +1,31 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "piece-lookup-attacks.h"
+extern U64 bishop_lookup_attacks(Square square, U64 occupancy);
+
+extern U64 rook_lookup_attacks(Square square, U64 occupancy);
+
+extern U64 queen_lookup_attacks(Square square, U64 occupancy);
+
+extern U64 pawn_lookup_attacks(Side side, Square square);
+
+extern U64 king_lookup_attacks(Square square);
+
+extern U64 knight_lookup_attacks(Square square);
+
+
+extern Piece boards_square_piece(U64 boards[12], Square square);
+
+extern U64 piece_lookup_attacks(Position position, Square square);
+
+extern void make_move(Position* position, Move move);
+
+extern int board_ls1b_index(U64 bitboard);
+
+extern const Castle CASTLE_BLACK_QUEEN;
+extern const Castle CASTLE_BLACK_KING;
+extern const Castle CASTLE_WHITE_QUEEN;
+extern const Castle CASTLE_WHITE_KING;
+
 
 bool board_square_attacked(Position position, Square square, Side side)
 {
@@ -294,6 +319,57 @@ bool castle_move_pseudo_legal(Position position, Move move)
     return castle_black_pseudo_legal(position, move);
   }
   else return false;
+}
+
+U64 BOARD_LOOKUP_LINES[BOARD_SQUARES][BOARD_SQUARES];
+
+U64 create_board_line(Square source, Square target)
+{
+  U64 board = 0ULL;
+
+  int sourceRank = (source / BOARD_FILES);
+  int sourceFile = (source % BOARD_FILES);
+
+  int targetRank = (target / BOARD_FILES);
+  int targetFile = (target % BOARD_FILES);
+
+  int rankOffset = (targetRank - sourceRank);
+  int fileOffset = (targetFile - sourceFile);
+
+  int rankFactor = (rankOffset > 0) ? +1 : -1;
+  int fileFactor = (fileOffset > 0) ? +1 : -1;
+
+  int absRankOffset = (rankOffset * rankFactor);
+  int absFileOffset = (fileOffset * fileFactor);
+
+  // If the move is not diagonal nor straight, return empty board;
+  if(!(absRankOffset == absFileOffset) && !((absRankOffset == 0) ^ (absFileOffset == 0))) return 0ULL;
+
+  int rankScalor = (rankOffset == 0) ? 0 : rankFactor;
+  int fileScalor = (fileOffset == 0) ? 0 : fileFactor;
+
+  for(int rank = sourceRank, file = sourceFile; (rank != targetRank || file != targetFile); rank += rankScalor, file += fileScalor)
+  {
+    Square square = (rank * BOARD_FILES) + file;
+
+    if(square == source || square == target) continue;
+
+    board = BOARD_SQUARE_SET(board, square);
+  }
+  return board;
+}
+
+void init_board_lookup_lines(void)
+{
+  for(Square sourceSquare = A8; sourceSquare <= H1; sourceSquare++)
+  {
+    for(Square targetSquare = A8; targetSquare <= H1; targetSquare++)
+    {
+      U64 boardLines = create_board_line(sourceSquare, targetSquare);
+
+      BOARD_LOOKUP_LINES[sourceSquare][targetSquare] = boardLines;
+    }
+  }
 }
 
 bool normal_move_pseudo_legal(Position position, Move move)

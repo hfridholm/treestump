@@ -1,5 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef TREESTUMP_H
+#define TREESTUMP_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -29,8 +29,6 @@ typedef enum
   A1, B1, C1, D1, E1, F1, G1, H1,
   SQUARE_NONE
 } Square;
-
-extern const Square MIRROR_SQUARES[BOARD_SQUARES];
 
 typedef enum 
 {
@@ -102,63 +100,17 @@ extern const Move MOVE_SHIFT_PROMOTE;
 #define MOVE_SET_PROMOTE(PROMOTE) ((PROMOTE << MOVE_SHIFT_PROMOTE) & MOVE_MASK_PROMOTE)
 
 
-extern const Piece SYMBOL_PIECES[];
+extern void init_board_lookup_lines(void);
 
-extern const char PIECE_SYMBOLS[12];
+extern void init_random_keys(void);
 
-extern const char* SQUARE_STRINGS[BOARD_SQUARES];
+extern void init_piece_lookup_attacks(void);
 
-extern const Castle CASTLE_BLACK_QUEEN;
-extern const Castle CASTLE_BLACK_KING;
-extern const Castle CASTLE_WHITE_QUEEN;
-extern const Castle CASTLE_WHITE_KING;
+extern void init_piece_lookup_masks(void);
 
-extern const Castle CASTLE_WHITE;
-extern const Castle CASTLE_BLACK;
+extern void init_bishop_rook_relevant_bits(void);
 
 
-extern void bitboard_print(U64 bitboard);
+extern void parse_uci(Position* position, const char uciString[]);
 
-extern void position_print(Position position);
-
-extern bool parse_fen(Position* position, const char fenString[]);
-
-extern void init_piece_lookup_attacks();
-
-extern void init_piece_lookup_masks();
-
-extern void init_bishop_rook_relevant_bits();
-
-extern U64 piece_lookup_attacks(Position position, Square square);
-
-extern Piece boards_square_piece(U64 boards[12], Square square);
-
-extern bool move_fully_legal(Position position, Move move);
-
-extern bool move_pseudo_legal(Position position, Move move);
-
-extern void make_move(Position* position, Move move);
-
-extern void board_covers_print(Position position);
-
-extern U64 BOARD_LOOKUP_LINES[BOARD_SQUARES][BOARD_SQUARES];
-
-extern bool make_legal_move(Position* position, Move move);
-
-extern int board_ls1b_index(U64 bitboard);
-
-extern void create_moves(MoveArray* moveArray, Position position);
-
-// extern void create_move(U64 boards[12], Square sourceSquare, Square targetSquare);
-
-extern bool board_square_attacked(Position position, Square square, Side side);
-
-extern Move complete_move(U64 boards[12], Move move);
-
-extern int position_score(Position position);
-
-extern void guess_order_moves(MoveArray* moveArray, Position position);
-
-extern const int PIECE_SCORES[12];
-
-#endif // ENGINE_H
+#endif // TREESTUMP_H

@@ -1,4 +1,4 @@
-#Notes
+# Notes
 
 https://www.chessprogramming.org/Population_Count#Brian_Kernighan.27s_way
 https://www.youtube.com/watch?v=0F_aeUik91A&list=PLmN0neTso3Jxh8ZIylk74JpwfiWNI76Cs&index=9

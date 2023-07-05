@@ -1,7 +1,14 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "engine-values.h"
-#include "string-handler.h"
+extern bool split_string_delim(char (*stringArray)[128], const char string[], int length, const char delim[], int amount);
+
+extern const Castle CASTLE_BLACK_QUEEN;
+extern const Castle CASTLE_BLACK_KING;
+extern const Castle CASTLE_WHITE_QUEEN;
+extern const Castle CASTLE_WHITE_KING;
+
+extern const Piece SYMBOL_PIECES[];
+
 
 bool parse_fen_side(Side* side, const char string[])
 {

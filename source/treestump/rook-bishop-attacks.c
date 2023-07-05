@@ -1,6 +1,7 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "bitboard-manipulation.h"
+extern int board_ls1b_index(U64 bitboard);
+
 
 U64 create_index_occupancy(int index, U64 attackMask, int bitAmount)
 {

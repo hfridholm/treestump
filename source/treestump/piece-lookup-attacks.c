@@ -1,12 +1,36 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "magic-lookup-numbers.h"
-#include "rook-bishop-attacks.h"
-#include "piece-lookup-masks.h"
+extern U64 BISHOP_LOOKUP_MASKS[BOARD_SQUARES];
 
-U64 BISHOP_LOOKUP_ATTACKS[64][512];
+extern U64 ROOK_LOOKUP_MASKS[BOARD_SQUARES];
 
-U64 ROOK_LOOKUP_ATTACKS[64][4096];
+extern U64 PAWN_LOOKUP_MASKS[2][BOARD_SQUARES];
+
+extern U64 KNIGHT_LOOKUP_MASKS[BOARD_SQUARES];
+
+extern U64 KING_LOOKUP_MASKS[BOARD_SQUARES];
+
+
+extern int BISHOP_RELEVANT_BITS[BOARD_SQUARES];
+
+extern int ROOK_RELEVANT_BITS[BOARD_SQUARES];
+
+
+extern const U64 BISHOP_MAGIC_NUMBERS[64];
+
+extern const U64 ROOK_MAGIC_NUMBERS[64];
+
+
+extern U64 create_index_occupancy(int index, U64 attackMask, int bitAmount);
+
+extern U64 calculate_bishop_attacks(Square square, U64 block);
+
+extern U64 calculate_rook_attacks(Square square, U64 block);
+
+
+U64 BISHOP_LOOKUP_ATTACKS[BOARD_SQUARES][512];
+
+U64 ROOK_LOOKUP_ATTACKS[BOARD_SQUARES][4096];
 
 void init_rook_lookup_attacks()
 {

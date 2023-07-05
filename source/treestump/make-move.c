@@ -1,4 +1,15 @@
-#include "../engine.h"
+#include "../treestump.h"
+
+extern Piece boards_square_piece(U64 boards[12], Square square);
+
+extern const Castle CASTLE_BLACK_QUEEN;
+extern const Castle CASTLE_BLACK_KING;
+extern const Castle CASTLE_WHITE_QUEEN;
+extern const Castle CASTLE_WHITE_KING;
+
+extern const Castle CASTLE_WHITE;
+extern const Castle CASTLE_BLACK;
+
 
 void make_castle_move(Position* position, Move move)
 {

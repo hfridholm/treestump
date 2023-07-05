@@ -1,21 +1,21 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-U32 randomState = 1804289383;
+U32 RANDOM_STATE = 1804289383;
 
-U32 get_random_U32_number()
+U32 get_random_U32_number(void)
 {
-    U32 number = randomState;
+    U32 number = RANDOM_STATE;
     
     number ^= number << 13;
     number ^= number >> 17;
     number ^= number << 5;
     
-    randomState = number;
+    RANDOM_STATE = number;
     
     return number;
 }
 
-U64 get_random_U64_number()
+U64 get_random_U64_number(void)
 {
     U64 n1, n2, n3, n4;
     
@@ -25,9 +25,4 @@ U64 get_random_U64_number()
     n4 = (U64) get_random_U32_number() & 0xFFFF;
     
     return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
-}
-
-U64 generate_magic_number()
-{
-    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
 }

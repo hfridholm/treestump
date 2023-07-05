@@ -1,9 +1,28 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "random-number.h"
-#include "bitboard-manipulation.h"
-#include "piece-lookup-masks.h"
-#include "rook-bishop-attacks.h"
+extern int board_bit_amount(U64 bitboard);
+
+extern U64 BISHOP_LOOKUP_MASKS[BOARD_SQUARES];
+
+extern U64 ROOK_LOOKUP_MASKS[BOARD_SQUARES];
+
+extern U64 create_index_occupancy(int index, U64 attackMask, int bitAmount);
+
+extern U64 calculate_bishop_attacks(Square square, U64 block);
+
+extern U64 calculate_rook_attacks(Square square, U64 block);
+
+extern int BISHOP_RELEVANT_BITS[BOARD_SQUARES];
+
+extern int ROOK_RELEVANT_BITS[BOARD_SQUARES];
+
+extern U64 get_random_U64_number(void);
+
+
+U64 generate_magic_number(void)
+{
+    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
+}
 
 U64 generate_occupancies_magic_number(U64 occupancies[4096], int relevantBits, U64 attacks[4096], U64 attackMask)
 {
@@ -52,18 +71,6 @@ U64 generate_square_magic_number(Square square, int relevantBits, bool bishop)
     }
     return generate_occupancies_magic_number(occupancies, relevantBits, attacks, attackMask);
 }
-
-/*
-void init_magic_numbers()
-{
-    for (int square = 0; square < 64; square++)
-    {
-        ROOK_MAGIC_NUMBERS[square] = generate_square_magic_number(square, ROOK_RELEVANT_BITS[square], false);
-
-        BISHOP_MAGIC_NUMBERS[square] = generate_square_magic_number(square, BISHOP_RELEVANT_BITS[square], true);
-    }
-}
-*/
 
 const U64 ROOK_MAGIC_NUMBERS[64] = 
 {
@@ -199,3 +206,15 @@ const U64 BISHOP_MAGIC_NUMBERS[64] = {
     0x8918844842082200ULL,
     0x4010011029020020ULL
 };
+
+/*
+void init_magic_numbers(void)
+{
+    for (int square = 0; square < 64; square++)
+    {
+        ROOK_MAGIC_NUMBERS[square] = generate_square_magic_number(square, ROOK_RELEVANT_BITS[square], false);
+
+        BISHOP_MAGIC_NUMBERS[square] = generate_square_magic_number(square, BISHOP_RELEVANT_BITS[square], true);
+    }
+}
+*/

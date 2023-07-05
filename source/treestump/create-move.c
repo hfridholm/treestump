@@ -1,4 +1,6 @@
-#include "../engine.h"
+#include "../treestump.h"
+
+extern Piece boards_square_piece(U64 boards[12], Square square);
 
 bool ident_capture_move(U64 boards[12], Square targetSquare)
 {

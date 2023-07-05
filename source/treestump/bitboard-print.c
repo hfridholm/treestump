@@ -1,6 +1,14 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "engine-values.h"
+extern const char PIECE_SYMBOLS[12];
+
+extern const char* SQUARE_STRINGS[BOARD_SQUARES];
+
+extern const Castle CASTLE_BLACK_QUEEN;
+extern const Castle CASTLE_BLACK_KING;
+extern const Castle CASTLE_WHITE_QUEEN;
+extern const Castle CASTLE_WHITE_KING;
+
 
 void bitboard_print(U64 bitboard)
 {

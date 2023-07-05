@@ -1,4 +1,9 @@
-#include "../engine.h"
+#include "../treestump.h"
+
+extern Piece boards_square_piece(U64 boards[12], Square square);
+
+extern const int PIECE_SCORES[12];
+
 
 void qswap_array_moves(Move* moves, int index1, int index2)
 {

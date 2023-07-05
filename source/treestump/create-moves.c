@@ -1,6 +1,21 @@
-#include "../engine.h"
+#include "../treestump.h"
 
-#include "create-move.h"
+extern Move create_double_move(Square sourceSquare, Square targetSquare, Piece piece);
+
+extern Move create_promote_move(U64 boards[12], Square sourceSquare, Square targetSquare, Piece piece, Piece promotePiece);
+
+extern Move create_castle_move(Square sourceSquare, Square targetSquare, Piece piece);
+
+extern Move create_normal_move(U64 boards[12], Square sourceSquare, Square targetSquare, Piece piece);
+
+
+extern bool move_fully_legal(Position position, Move move);
+
+extern U64 piece_lookup_attacks(Position position, Square square);
+
+
+extern int board_ls1b_index(U64 bitboard);
+
 
 void create_white_pawn_promote_moves(MoveArray* moveArray, Position position, Square sourceSquare)
 {
