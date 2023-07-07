@@ -31,7 +31,7 @@ bool ident_passant_move(U64 boards[12], Piece sourcePiece, Square sourceSquare, 
 
 Move create_double_move(Square sourceSquare, Square targetSquare, Piece piece)
 {
-  Move move = 0;
+  Move move = MOVE_NONE;
 
   move |= MOVE_SET_SOURCE(sourceSquare);
   move |= MOVE_SET_TARGET(targetSquare);
@@ -45,7 +45,7 @@ Move create_double_move(Square sourceSquare, Square targetSquare, Piece piece)
 
 Move create_promote_move(U64 boards[12], Square sourceSquare, Square targetSquare, Piece piece, Piece promotePiece)
 {
-  Move move = 0;
+  Move move = MOVE_NONE;
 
   move |= MOVE_SET_SOURCE(sourceSquare);
   move |= MOVE_SET_TARGET(targetSquare);
@@ -61,7 +61,7 @@ Move create_promote_move(U64 boards[12], Square sourceSquare, Square targetSquar
 
 Move create_castle_move(Square sourceSquare, Square targetSquare, Piece piece)
 {
-  Move move = 0;
+  Move move = MOVE_NONE;
 
   move |= MOVE_SET_SOURCE(sourceSquare);
   move |= MOVE_SET_TARGET(targetSquare);
@@ -75,7 +75,7 @@ Move create_castle_move(Square sourceSquare, Square targetSquare, Piece piece)
 
 Move create_normal_move(U64 boards[12], Square sourceSquare, Square targetSquare, Piece piece)
 {
-  Move move = 0;
+  Move move = MOVE_NONE;
 
   move |= MOVE_SET_SOURCE(sourceSquare);
   move |= MOVE_SET_TARGET(targetSquare);
@@ -90,7 +90,7 @@ Move create_normal_move(U64 boards[12], Square sourceSquare, Square targetSquare
 // Divide this function into smaller functions
 Move create_move(U64 boards[12], Square sourceSquare, Square targetSquare)
 {
-  Move move = 0;
+  Move move = MOVE_NONE;
 
   move |= MOVE_SET_SOURCE(sourceSquare);
   move |= MOVE_SET_TARGET(targetSquare);

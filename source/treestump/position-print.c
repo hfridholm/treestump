@@ -9,6 +9,8 @@ extern const Castle CASTLE_BLACK_KING;
 extern const Castle CASTLE_WHITE_QUEEN;
 extern const Castle CASTLE_WHITE_KING;
 
+extern Piece boards_square_piece(U64 boards[12], Square square);
+
 
 void bitboard_print(U64 bitboard)
 {
@@ -29,35 +31,13 @@ void bitboard_print(U64 bitboard)
   printf("\nBitboard: %llu\n\n", bitboard);
 }
 
-void position_print(Position position)
+void position_info_print(Position position)
 {
-  printf("\n");
-  for(int rank = 0; rank < BOARD_RANKS; rank++)
-  {
-    for(int file = 0; file < BOARD_FILES; file++)
-    {
-      Square square = (rank * BOARD_FILES) + file;
-
-      if(!file) printf("%d ", BOARD_RANKS - rank);
-
-      int printPiece = -1;
-
-      for(Piece piece = PIECE_WHITE_PAWN; piece <= PIECE_BLACK_KING; piece++)
-      {
-        if(BOARD_SQUARE_GET(position.boards[piece], square))
-          printPiece = piece;
-      }
-      printf("%c ", (printPiece != -1) ? PIECE_SYMBOLS[printPiece] : '.');
-    }
-    printf("\n");
-  }
-  printf("  A B C D E F G H\n\n");
-
-  printf("Side: %s\n", (position.side == SIDE_WHITE) ? "white" : "black");
+  printf("Side:      %s\n", (position.side == SIDE_WHITE) ? "white" : "black");
 
   printf("Enpassant: %s\n", (position.passant != SQUARE_NONE) ? SQUARE_STRINGS[position.passant] : "no");
 
-  printf("Castling: %c%c%c%c\n\n",
+  printf("Castling:  %c%c%c%c\n",
     (position.castle & CASTLE_WHITE_KING) ? 'K' : '-',
     (position.castle & CASTLE_WHITE_QUEEN) ? 'Q' : '-',
     (position.castle & CASTLE_BLACK_KING) ? 'k' : '-',
@@ -65,9 +45,8 @@ void position_print(Position position)
   );
 }
 
-void board_covers_print(Position position)
+void position_print(Position position)
 {
-  printf("\n");
   for(int rank = 0; rank < BOARD_RANKS; rank++)
   {
     for(int file = 0; file < BOARD_FILES; file++)
@@ -76,14 +55,30 @@ void board_covers_print(Position position)
 
       if(!file) printf("%d ", BOARD_RANKS - rank);
 
-      int printPiece = -1;
+      int piece = boards_square_piece(position.boards, square);
 
-      for(Piece piece = PIECE_WHITE_PAWN; piece <= PIECE_BLACK_KING; piece++)
-      {
-        if(BOARD_SQUARE_GET(position.boards[piece], square))
-          printPiece = piece;
-      }
-      printf("%c ", (printPiece != -1) ? PIECE_SYMBOLS[printPiece] : '.');
+      printf("%c ", (piece != PIECE_NONE) ? PIECE_SYMBOLS[piece] : '.');
+    }
+    printf("\n");
+  }
+  printf("  A B C D E F G H\n\n");
+
+  position_info_print(position);
+}
+
+void board_covers_print(Position position)
+{
+  for(int rank = 0; rank < BOARD_RANKS; rank++)
+  {
+    for(int file = 0; file < BOARD_FILES; file++)
+    {
+      Square square = (rank * BOARD_FILES) + file;
+
+      if(!file) printf("%d ", BOARD_RANKS - rank);
+
+      int piece = boards_square_piece(position.boards, square);
+
+      printf("%c ", (piece != PIECE_NONE) ? PIECE_SYMBOLS[piece] : '.');
     }
 
     printf("  |  ");
@@ -123,14 +118,5 @@ void board_covers_print(Position position)
   }
   printf("  A B C D E F G H\n\n");
 
-  printf("Side: %s\n", (position.side == SIDE_WHITE) ? "white" : "black");
-
-  printf("Enpassant: %s\n", (position.passant != SQUARE_NONE) ? SQUARE_STRINGS[position.passant] : "no");
-
-  printf("Castling: %c%c%c%c\n\n",
-    (position.castle & CASTLE_WHITE_KING) ? 'K' : '-',
-    (position.castle & CASTLE_WHITE_QUEEN) ? 'Q' : '-',
-    (position.castle & CASTLE_BLACK_KING) ? 'k' : '-',
-    (position.castle & CASTLE_BLACK_QUEEN) ? 'q' : '-'
-  );
+  position_info_print(position);
 }

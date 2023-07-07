@@ -8,7 +8,7 @@ extern bool parse_fen(Position* position, const char fenString[]);
 
 extern void perft_test(Position position, int depth);
 
-extern Move best_move(Position position, int depth);
+extern Move best_move(Position position, int depth, int nodes, int movetime, MoveArray searchmoves);
 
 extern char* move_string(char* moveString, Move move);
 
@@ -21,74 +21,122 @@ extern void position_print(Position position);
 extern void make_move(Position* position, Move move);
 
 
-void parse_uci_go_depth(Position position, const char depthString[])
+MoveArray string_moves(U64 boards[12], const char movesString[])
 {
-  int depth = atoi(depthString);
+  MoveArray moveArray;
 
-  searchedNodes = 0;
+  memset(moveArray.moves, MOVE_NONE, sizeof(moveArray.moves));
+  moveArray.amount = 0;
 
-  Move bestMove = best_move(position, depth);
+  while(*movesString)
+  {
+    Move parsedMove = string_move(movesString);
 
-  char moveString[8];
-  move_string(moveString, bestMove);
+    // if(parsedMove == 0) break;
 
-  printf("info searched nodes: %llu\n", searchedNodes);
+    if(parsedMove != MOVE_NONE)
+    {
+      Move move = complete_move(boards, parsedMove);
 
-  printf("bestmove %s\n", moveString);
+      moveArray.moves[moveArray.amount++] = move;
+    }
+
+    while(*movesString && *movesString != ' ') movesString++;
+
+    movesString++;
+  }
+  return moveArray;
 }
 
-void parse_uci_go(Position* position, const char goString[])
+void parse_uci_go(Position position, const char goString[])
 {
   if(!strncmp(goString, "perft", 5))
   {
     int depth = atoi(goString + 6);
 
-    perft_test(*position, depth);
-  }
-  else if(!strncmp(goString, "searchmoves", 11))
-  {
+    perft_test(position, depth);
 
+    return;
   }
-  else if(!strncmp(goString, "ponder", 5))
-  {
 
-  }
-  else if(!strncmp(goString, "wtime", 5))
-  {
+  int depth = 4;
+  int nodes = -1;
+  int movetime = -1;
 
-  }
-  else if(!strncmp(goString, "btime", 5))
-  {
+  MoveArray searchmoves;
 
-  }
-  else if(!strncmp(goString, "winc", 4))
-  {
+  memset(searchmoves.moves, MOVE_NONE, sizeof(searchmoves.moves));
+  searchmoves.amount = 0;
 
-  }
-  else if(!strncmp(goString, "binc", 5))
-  {
 
-  }
-  else if(!strncmp(goString, "depth", 5))
+  char* string;
+  
+  if((string = strstr(goString, "searchmoves")))
   {
-    parse_uci_go_depth(*position, goString + 5);
+    // Search only on these moves
+    searchmoves = string_moves(position.boards, goString + 12);
+  }
+  if(!strncmp(goString, "ponder", 5))
+  {
+    // This is not implemented
+  }
+  if((string = strstr(goString, "depth")))
+  {
+    // Search x plies only
+    depth = atoi(string + 6);
   } 
-  else if(!strncmp(goString, "nodes", 5))
+  if((string = strstr(goString, "nodes")))
   {
-
+    // Search x nodes only
+    nodes = atoi(string + 6);
   }
-  else if(!strncmp(goString, "mate", 4))
+  if((string = strstr(goString, "mate")))
   {
-
+    // Search for a mate in x moves
   }
-  else if(!strncmp(goString, "movetime", 8))
+  if((string = strstr(goString, "movetime")))
   {
-
+    // Search exactly x milliseconds
+    movetime = atoi(string + 9);
   }
-  else if(!strncmp(goString, "infinite", 8))
+  if((string = strstr(goString, "infinite")))
   {
-
+    // This is not implemented
   }
+
+  // int time = -1;
+  // int inc = -1;
+  
+  if((string = strstr(goString, "wtime")) && position.side == SIDE_WHITE)
+  {
+    // White has x milliseconds left on the clock
+    // time = atoi(string + 6);
+  }
+  else if((string = strstr(goString, "btime")) && position.side == SIDE_BLACK)
+  {
+    // Black has x milliseconds left on the clock
+    // time = atoi(string + 6);
+  }
+
+  if((string = strstr(goString, "winc")) && position.side == SIDE_WHITE)
+  {
+    // White's increment per move in milliseconds
+    // inc = atoi(string + 5);
+  }
+  else if((string = strstr(goString, "binc")) && position.side == SIDE_BLACK)
+  {
+    // Blacks's increment per move in milliseconds
+    // inc = atoi(string + 5);
+  }
+
+  // printf("best_move(%d, %d, %d)\n", depth, nodes, movetime);
+
+  Move bestMove = best_move(position, depth, nodes, movetime, searchmoves);
+
+  char moveString[8];
+  move_string(moveString, bestMove);
+
+  printf("bestmove %s\n", moveString);
 }
 
 Position parse_uci_position(const char positionString[])
@@ -116,7 +164,7 @@ Position parse_uci_position(const char positionString[])
     {
       Move parsedMove = string_move(movesString);
 
-      if(parsedMove == 0) break;
+      if(parsedMove == MOVE_NONE) break;
 
       Move move = complete_move(position.boards, parsedMove);
 
@@ -138,7 +186,7 @@ void parse_uci(Position* position, const char uciString[])
   }
   else if(!strncmp(uciString, "go", 2))
   {
-    parse_uci_go(position, uciString + 3);
+    parse_uci_go(*position, uciString + 3);
   }
   else if(!strcmp(uciString, "d"))
   {

@@ -9,7 +9,7 @@ extern Move create_castle_move(Square sourceSquare, Square targetSquare, Piece p
 extern Move create_normal_move(U64 boards[12], Square sourceSquare, Square targetSquare, Piece piece);
 
 
-extern bool move_fully_legal(Position position, Move move);
+extern bool move_legal(Position position, Move move);
 
 extern U64 piece_lookup_attacks(Position position, Square square);
 
@@ -23,7 +23,7 @@ void create_white_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
   {
     Move move = create_promote_move(position.boards, sourceSquare, targetSquare, PIECE_WHITE_PAWN, PIECE_WHITE_QUEEN);
 
-    if(!move_fully_legal(position, move)) continue;
+    if(!move_legal(position, move)) continue;
 
     for(Piece promotePiece = PIECE_WHITE_KNIGHT; promotePiece <= PIECE_WHITE_QUEEN; promotePiece++)
     {
@@ -48,14 +48,14 @@ void create_white_pawn_moves(MoveArray* moveArray, Position position, Square sou
 
       if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
 
-      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+      if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
     }
 
     if(sourceSquare >= A2 && sourceSquare <= H2)
     {
       Move move = create_double_move(sourceSquare, sourceSquare - (BOARD_FILES * 2), PIECE_WHITE_PAWN);
 
-      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+      if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
     }
   }
 }
@@ -66,7 +66,7 @@ void create_black_pawn_promote_moves(MoveArray* moveArray, Position position, Sq
   {
     Move move = create_promote_move(position.boards, sourceSquare, targetSquare, PIECE_BLACK_PAWN, PIECE_BLACK_QUEEN);
 
-    if(!move_fully_legal(position, move)) continue;
+    if(!move_legal(position, move)) continue;
 
     for(Piece promotePiece = PIECE_BLACK_KNIGHT; promotePiece <= PIECE_BLACK_QUEEN; promotePiece++)
     {
@@ -91,14 +91,14 @@ void create_black_pawn_moves(MoveArray* moveArray, Position position, Square sou
 
       if(targetSquare == position.passant) move |= MOVE_MASK_PASSANT;
 
-      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+      if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
     }
 
     if(sourceSquare >= A7 && sourceSquare <= H7)
     {
       Move move = create_double_move(sourceSquare, sourceSquare + (BOARD_FILES * 2), PIECE_BLACK_PAWN);
 
-      if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+      if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
     }
   }
 }
@@ -107,22 +107,22 @@ void create_white_castle_moves(MoveArray* moveArray, Position position)
 {
   Move move = create_castle_move(E1, C1, PIECE_WHITE_KING);
 
-  if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+  if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 
   move = create_castle_move(E1, G1, PIECE_WHITE_KING);
 
-  if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+  if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 }
 
 void create_black_castle_moves(MoveArray* moveArray, Position position)
 {
   Move move = create_castle_move(E8, C8, PIECE_BLACK_KING);
 
-  if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+  if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 
   move = create_castle_move(E8, G8, PIECE_BLACK_KING);
 
-  if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+  if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 }
 
 void create_white_normal_moves(MoveArray* moveArray, Position position, Square sourceSquare, Piece piece)
@@ -138,7 +138,7 @@ void create_white_normal_moves(MoveArray* moveArray, Position position, Square s
 
     Move move = create_normal_move(position.boards, sourceSquare, targetSquare, piece);
     
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 
     attackBoard = BOARD_SQUARE_POP(attackBoard, targetSquare);
   }
@@ -176,7 +176,7 @@ void create_black_normal_moves(MoveArray* moveArray, Position position, Square s
 
     Move move = create_normal_move(position.boards, sourceSquare, targetSquare, piece);
     
-    if(move_fully_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
+    if(move_legal(position, move)) moveArray->moves[moveArray->amount++] = move;
 
     attackBoard = BOARD_SQUARE_POP(attackBoard, targetSquare);
   }

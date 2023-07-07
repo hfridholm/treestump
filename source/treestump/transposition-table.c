@@ -2,7 +2,7 @@
 
 extern int board_ls1b_index(U64 bitboard);
 
-extern U64 get_random_U64_number(void);
+extern U64 random_U64(void);
 
 extern U32 RANDOM_STATE;
 
@@ -23,18 +23,18 @@ void init_random_keys()
   {
     for(Square square = 0; square < BOARD_SQUARES; square++)
     {
-      PIECE_HASH_KEYS[piece][square] = get_random_U64_number();
+      PIECE_HASH_KEYS[piece][square] = random_U64();
     }
   }
   for(Square square = 0; square < BOARD_SQUARES; square++)
   {
-    PASSANT_HASH_KEYS[square] = get_random_U64_number();
+    PASSANT_HASH_KEYS[square] = random_U64();
   }
   for(int index = 0; index < 16; index++)
   {
-    CASTLE_HASH_KEYS[index] = get_random_U64_number();
+    CASTLE_HASH_KEYS[index] = random_U64();
   }
-  SIDE_HASH_KEY = get_random_U64_number();
+  SIDE_HASH_KEY = random_U64();
 }
 
 U64 create_hash_key(Position position)

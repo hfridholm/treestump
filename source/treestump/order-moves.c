@@ -5,14 +5,14 @@ extern Piece boards_square_piece(U64 boards[12], Square square);
 extern const int PIECE_SCORES[12];
 
 
-void qswap_array_moves(Move* moves, int index1, int index2)
+void qswap_moves(Move* moves, int index1, int index2)
 {
   Move tempMove = moves[index1];
   moves[index1] = moves[index2];
   moves[index2] = tempMove;
 }
 
-void qswap_move_scores(int* scores, int index1, int index2)
+void qswap_scores(int* scores, int index1, int index2)
 {
   int tempScore = scores[index1];
   scores[index1] = scores[index2];
@@ -21,9 +21,9 @@ void qswap_move_scores(int* scores, int index1, int index2)
 
 void qswap_moves_scores(Move* moves, int* scores, int index1, int index2)
 {
-  qswap_array_moves(moves, index1, index2);
+  qswap_moves(moves, index1, index2);
 
-  qswap_move_scores(scores, index1, index2);
+  qswap_scores(scores, index1, index2);
 }
 
 int partly_qsort_moves(Move* moves, int* scores, int index1, int index2)

@@ -73,8 +73,17 @@ void perft_test(Position position, int depth)
 
 U64 searchedNodes = 0;
 
-int negamax(Position position, int depth, int alpha, int beta)
+int negamax(Position position, int depth, int nodes, int alpha, int beta)
 {
+  /*
+  if(nodes > 0 && searchedNodes >= nodes)
+  {
+    int score = position_score(position);
+
+    return (position.side == SIDE_WHITE) ? score : -score;
+  }
+  */
+
   if(depth <= 0)
   {
     searchedNodes++;
@@ -84,7 +93,7 @@ int negamax(Position position, int depth, int alpha, int beta)
     return (position.side == SIDE_WHITE) ? score : -score;
   }
 
-  int bestScore = -500000;
+  int bestScore = -50000;
 
   MoveArray moveArray;
 
@@ -110,13 +119,14 @@ int negamax(Position position, int depth, int alpha, int beta)
 
   guess_order_moves(&moveArray, position);
 
+
   for(int index = 0; index < moveArray.amount; index++)
   {
     Position positionCopy = position;
 
     make_move(&positionCopy, moveArray.moves[index]);
 
-    int currentScore = -negamax(positionCopy, (depth - 1), -beta, -alpha);
+    int currentScore = -negamax(positionCopy, (depth - 1), nodes, -beta, -alpha);
 
     if(currentScore > bestScore) bestScore = currentScore;
 
@@ -127,18 +137,28 @@ int negamax(Position position, int depth, int alpha, int beta)
   return bestScore;
 }
 
-Move best_move(Position position, int depth)
+Move best_move(Position position, int depth, int nodes, int movetime, MoveArray searchmoves)
 {
+  searchedNodes = 0;
+
   MoveArray moveArray;
 
   memset(moveArray.moves, 0, sizeof(moveArray.moves));
   moveArray.amount = 0;
 
-  create_moves(&moveArray, position);
+  if(searchmoves.amount > 0)
+  {
+    moveArray = searchmoves;
+  }
+  else
+  {
+    create_moves(&moveArray, position);
 
-  if(moveArray.amount <= 0) return 0;
+    if(moveArray.amount <= 0) return MOVE_NONE;
+  }
 
-  int bestScore = -500000;
+
+  int bestScore = -50000;
   Move bestMove = moveArray.moves[0];
 
   for(int index = 0; index < moveArray.amount; index++)
@@ -149,7 +169,7 @@ Move best_move(Position position, int depth)
 
     make_move(&positionCopy, currentMove);
 
-    int currentScore = -negamax(positionCopy, (depth - 1), -50000, +50000);
+    int currentScore = -negamax(positionCopy, (depth - 1), nodes, -50000, +50000);
 
     /*
     char moveString[8];
@@ -163,5 +183,8 @@ Move best_move(Position position, int depth)
       bestMove = currentMove;
     }
   }
+
+  // printf("searchedNodes: %llu\n", searchedNodes);
+
   return bestMove;
 }

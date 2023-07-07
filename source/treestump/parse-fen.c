@@ -36,6 +36,7 @@ bool parse_fen_clock(int* clock, const char string[])
   if((number == 0) && (*string != '0')) return false;
 
   *clock = number;
+
   return true;
 }
 
@@ -46,6 +47,7 @@ bool parse_fen_turns(int* turns, const char string[])
   if((number == 0) && (*string != '0')) return false;
 
   *turns = number;
+
   return true;
 }
 
@@ -54,6 +56,7 @@ bool parse_fen_passant(Square* passant, const char string[])
   if(!strcmp(string, "-"))
   {
     *passant = SQUARE_NONE;
+    
     return true;
   }
 

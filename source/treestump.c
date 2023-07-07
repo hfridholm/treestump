@@ -13,15 +13,15 @@ void init_all(void)
   init_random_keys();
 }
 
-bool stdin_string(char* string, const char prompt[])
+bool stdin_string(char* string)
 {
   fflush(stdin);
-  printf("%s", prompt);
 
   char buffer[1024];
+
   if(fgets(buffer, sizeof(buffer), stdin) == NULL) return false;
 
-  return sscanf(buffer, "%[^\n]%*c", string);
+  return (sscanf(buffer, "%[^\n]%*c", string) == 1);
 }
 
 extern const char FEN_START[];
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   char uciString[256];
   memset(uciString, 0, sizeof(uciString));
 
-  stdin_string(uciString, "");
+  stdin_string(uciString);
 
   if(!strcmp(uciString, "uci"))
   {
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
   {
     memset(uciString, 0, sizeof(uciString));
 
-    stdin_string(uciString, "");
+    stdin_string(uciString);
 
     parse_uci(&position, uciString);
   }

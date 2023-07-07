@@ -187,10 +187,10 @@ void make_pawn_double_move(Position* position, Move move)
   // Move the pawn on the board
   position->boards[sourcePiece] ^= moveBoard;
 
-  // Update the side occupancy/cover boards
+  // Update the side cover/cover boards
   position->covers[side] ^= moveBoard;
 
-  // Update the occupancy/cover boards for both sides
+  // Update the cover/cover boards for both sides
   position->covers[SIDE_BOTH] ^= moveBoard;
 
 

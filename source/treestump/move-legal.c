@@ -1,10 +1,10 @@
 #include "../treestump.h"
 
-extern U64 bishop_lookup_attacks(Square square, U64 occupancy);
+extern U64 bishop_lookup_attacks(Square square, U64 cover);
 
-extern U64 rook_lookup_attacks(Square square, U64 occupancy);
+extern U64 rook_lookup_attacks(Square square, U64 cover);
 
-extern U64 queen_lookup_attacks(Square square, U64 occupancy);
+extern U64 queen_lookup_attacks(Square square, U64 cover);
 
 extern U64 pawn_lookup_attacks(Side side, Square square);
 
@@ -418,7 +418,7 @@ bool move_pseudo_legal(Position position, Move move)
   else return normal_move_pseudo_legal(position, move);
 }
 
-bool move_fully_legal(Position position, Move move)
+bool move_legal(Position position, Move move)
 {
   if(!move_pseudo_legal(position, move)) return false;
 
